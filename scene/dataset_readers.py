@@ -78,6 +78,9 @@ def getNerfppNorm(cam_info):
 
 def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
     cam_infos = []
+    subfolders = sorted([subfolder for subfolder in os.listdir(images_folder) if os.path.isdir(os.path.join(images_folder, subfolder))])
+    #subfolders = sorted(subfolders, key = lambda x : int(x.split('_')[1]))
+    timestep_mapping = {subfolder: idx for idx, subfolder in enumerate(subfolders)}
     for idx, key in enumerate(cam_extrinsics):
         sys.stdout.write('\r')
         # the exact output you're looking for:
@@ -93,7 +96,8 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
         R = np.transpose(qvec2rotmat(extr.qvec))
         T = np.array(extr.tvec)
 
-        if intr.model=="SIMPLE_PINHOLE":
+        # SIMPLE_RADIAL ignoring distortion
+        if intr.model in ["SIMPLE_PINHOLE", "SIMPLE_RADIAL"]:
             focal_length_x = intr.params[0]
             FovY = focal2fov(focal_length_x, height)
             FovX = focal2fov(focal_length_x, width)
@@ -107,10 +111,12 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, images_folder):
 
         image_path = os.path.join(images_folder, os.path.basename(extr.name))
         image_name = os.path.basename(image_path).split(".")[0]
+        image_path = os.path.join(images_folder, extr.name)
         image = Image.open(image_path)
+        timestep = timestep_mapping[extr.name.split('/')[0]]
 
-        cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, image=image,
-                              image_path=image_path, image_name=image_name, width=width, height=height)
+        cam_info = CameraInfo(uid=uid, R=R, T=T, FovY=FovY, FovX=FovX, image=image, depth=None,
+                              image_path=image_path, image_name=image_name, width=width, height=height, timestamp=timestep)
         cam_infos.append(cam_info)
     sys.stdout.write('\n')
     return cam_infos
@@ -161,7 +167,8 @@ def readColmapSceneInfo(path, images, eval, llffhold=8, num_pts_ratio=1.0):
 
     reading_dir = "images" if images == None else images
     cam_infos_unsorted = readColmapCameras(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, images_folder=os.path.join(path, reading_dir))
-    cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : x.image_name)
+    # cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : x.image_name) # this would not respect the natural sequential order
+    cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : tuple(map(int, x.image_name.split('_')[1:])))
 
     if eval:
         train_cam_infos = [c for idx, c in enumerate(cam_infos) if idx % llffhold != 0]

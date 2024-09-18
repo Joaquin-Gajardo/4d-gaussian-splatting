@@ -19,15 +19,26 @@
 
 ### Environment
 
-The hardware and software requirements are the same as those of the [3D Gaussian Splatting](https://github.com/graphdeco-inria/gaussian-splatting), which this code is built upon. To setup the environment, please run the following command:
+The hardware and software requirements are the same as those of the [3D Gaussian Splatting](https://github.com/graphdeco-inria/gaussian-splatting), which this code is built upon. To setup the environment, please run the following command (we skip this and do it inside the Docker container manually):
 
 ```shell
 git clone https://github.com/fudan-zvg/4d-gaussian-splatting
 cd 4d-gaussian-splatting
-conda env create --file environment.yml
-conda activate 4dgs
+#conda env create --file environment.yml
+#conda activate 4dgs
 ```
 
+Docker container and create environment manually:
+```shell
+docker run -d --name realtime4DGS --gpus=all --shm-size=24g -p 6018:6018 -w /workspace/4d-gaussian-splatting -v ${PWD}:/workspace/4d-gaussian-splatting -t 3dv:latest
+conda create -n realtime4dgs2 python=3.7.13
+conda activate realtime4dgs2
+pip install torch==1.12.1+cu116 torchvision==0.13.1+cu116 torchaudio==0.12.1 -f https://download.pytorch.org/whl/torch_stable.html
+pip install plyfile==0.8.1 tqdm==4.66.1 torchmetrics==0.11.4 imagesize==1.4.1 kornia==0.6.12 omegaconf==2.3.0
+pip install --no-cache-dir ./simple-knn
+pip install --no-cache-dir ./pointops2
+pip install pandas
+```
 ### Data preparation
 
 **DyNeRF dataset:**
@@ -49,6 +60,14 @@ After the installation and data preparation, you can train the model by running:
 
 ```shell
 python train.py --config $config_path
+```
+Rendering (taken from [here](https://github.com/fudan-zvg/4d-gaussian-splatting/issues/12#issuecomment-1930042293)) can be done by running:
+```shell
+python render.py --model_path output/N3V/cook_spinach/ --loaded_pth output/N3V/cook_spinach/chkpnt_best.pth
+```
+Metrics evaluation:
+```shell
+python metrics.py --model_path output/N3V/cook_spinach/
 ```
 
 ## 🎥 Videos

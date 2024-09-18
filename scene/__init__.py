@@ -51,9 +51,14 @@ class Scene:
         else:
             assert False, "Could not recognize scene type!"
 
-        if not self.loaded_iter:
-            with open(scene_info.ply_path, 'rb') as src_file, open(os.path.join(self.model_path, "input.ply") , 'wb') as dest_file:
+        # For not rewriting input files when rendering
+        input_ply_path = os.path.join(self.model_path, "input.ply")
+        if not os.path.exists(input_ply_path):
+            with open(scene_info.ply_path, 'rb') as src_file, open(input_ply_path, 'wb') as dest_file:
                 dest_file.write(src_file.read())
+        
+        cameras_json_path = os.path.join(self.model_path, "cameras.json")
+        if not os.path.exists(cameras_json_path):
             json_cams = []
             camlist = []
             if scene_info.test_cameras:
@@ -64,6 +69,12 @@ class Scene:
                 json_cams.append(camera_to_JSON(id, cam))
             with open(os.path.join(self.model_path, "cameras.json"), 'w') as file:
                 json.dump(json_cams, file)
+
+        test_cameras_names_path = os.path.join(self.model_path, 'test_cameras_names.txt')
+        if not os.path.exists(test_cameras_names_path):
+            with open(test_cameras_names_path, 'w') as f:
+                for cam in scene_info.test_cameras:
+                    f.write(f"{cam.image_name}\n")
 
         if shuffle:
             random.shuffle(scene_info.train_cameras)  # Multi-res consistent random shuffling
@@ -78,7 +89,7 @@ class Scene:
             self.test_cameras[resolution_scale] = cameraList_from_camInfos(scene_info.test_cameras, resolution_scale, args)
             
         if args.loaded_pth:
-            self.gaussians.create_from_pth(args.loaded_pth, self.cameras_extent)
+            self.gaussians.restore(model_args=torch.load(args.loaded_pth)[0], training_args=None)
         else:
             if self.loaded_iter:
                 self.gaussians.load_ply(os.path.join(self.model_path,

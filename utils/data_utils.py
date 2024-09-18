@@ -15,6 +15,7 @@ class CameraDataset(Dataset):
         
     def __getitem__(self, index):
         viewpoint_cam = self.viewpoint_stack[index]
+        #print(viewpoint_cam.image_path)
         if viewpoint_cam.meta_only:
             with Image.open(viewpoint_cam.image_path) as image_load:
                 im_data = np.array(image_load.convert("RGBA"))
