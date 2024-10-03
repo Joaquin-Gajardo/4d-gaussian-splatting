@@ -10,6 +10,10 @@ def summarize_results(base_folder):
     # Iterate through each subfolder in the base folder
     for scene_folder in os.listdir(base_folder):
         scene_path = os.path.join(base_folder, scene_folder)
+
+        # Skip if scene folder ends with a number (e.g. "scene2"), assumes final runs are without numbers
+        if scene_path[-1].isdigit():
+            continue
         
         # Check if it's a directory
         if os.path.isdir(scene_path):
@@ -52,10 +56,10 @@ def summarize_results(base_folder):
     return df
 
 #base_folder = "output/N3V"
-base_folder = "output/WAT"
+base_folder = "output/WAT-fullres"
 summary_table = summarize_results(base_folder)
 
 print(summary_table.to_string())
 
 #summary_table.to_csv("dynerf_realtime4DGS_results_summary.csv")
-summary_table.to_csv("WAT_realtime4DGS_results_summary.csv", index=False)
+summary_table.to_csv("WAT_realtime4DGS-fullres_results_summary.csv")
