@@ -10,9 +10,9 @@ exhaust_test: False
 ModelParams:
   sh_degree: 3
   source_path: "data/WAT/spa"
-  model_path: "output/WAT/spa"
+  model_path: "output/WAT-fullres/spa"
   images: "images"
-  resolution: 2
+  resolution: 1
   white_background: False
   data_device: "cuda"
   eval: True

@@ -6,7 +6,7 @@ dataset_folder="$base_folder/data/WAT"
 for input_folder in "$dataset_folder"/*
 do
     scene=$(basename $input_folder)
-    output_path="$base_folder/output/WAT/$scene"
+    output_path="$base_folder/output/WAT-fullres/$scene"
     # Check if the date has already been processed
     if [ ! -d $output_path ]; then
         echo "Processing scene $scene, output written to $output_path"

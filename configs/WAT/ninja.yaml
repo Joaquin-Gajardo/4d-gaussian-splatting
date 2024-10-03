@@ -10,9 +10,9 @@ exhaust_test: False
 ModelParams:
   sh_degree: 3
   source_path: "data/WAT/ninja"
-  model_path: "output/WAT/ninja"
+  model_path: "output/WAT-fullres/ninja"
   images: "images"
-  resolution: 2
+  resolution: 1
   white_background: False
   data_device: "cuda"
   eval: True
