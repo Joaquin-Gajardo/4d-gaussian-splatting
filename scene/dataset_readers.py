@@ -167,8 +167,8 @@ def readColmapSceneInfo(path, images, eval, llffhold=8, num_pts_ratio=1.0):
 
     reading_dir = "images" if images == None else images
     cam_infos_unsorted = readColmapCameras(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, images_folder=os.path.join(path, reading_dir))
-    # cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : x.image_name) # this would not respect the natural sequential order
-    cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : tuple(map(int, x.image_name.split('_')[1:])))
+    cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : x.image_name) # this would not respect the natural sequential order
+    #cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : tuple(map(int, x.image_name.split('_')[1:])))
 
     if eval:
         train_cam_infos = [c for idx, c in enumerate(cam_infos) if idx % llffhold != 0]

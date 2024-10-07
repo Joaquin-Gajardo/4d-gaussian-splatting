@@ -10,7 +10,7 @@ exhaust_test: False
 ModelParams:
   sh_degree: 3
   source_path: "data/WAT/car_resized"
-  model_path: "output/WAT-fullres/car_resized"
+  model_path: "output/WAT/realtime4DGS-3/car_resized"
   images: "images"
   resolution: 1
   white_background: False

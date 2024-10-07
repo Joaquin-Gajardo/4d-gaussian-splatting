@@ -10,7 +10,7 @@ exhaust_test: False
 ModelParams:
   sh_degree: 3
   source_path: "data/WAT/mac"
-  model_path: "output/WAT-fullres/mac"
+  model_path: "output/WAT/realtime4DGS-3/mac"
   images: "images"
   resolution: 1
   white_background: False

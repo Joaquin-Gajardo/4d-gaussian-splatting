@@ -6,12 +6,12 @@ dataset_folder="$base_folder/data/WAT"
 for input_folder in "$dataset_folder"/*
 do
     scene=$(basename $input_folder)
-    output_path="$base_folder/output/WAT-fullres/$scene"
+    output_path="$base_folder/output/WAT/realtime4DGS-3/$scene"
     # Check if the date has already been processed
     if [ ! -d $output_path ]; then
         echo "Processing scene $scene, output written to $output_path"
         python train.py --config configs/WAT/$scene.yaml
-        python render.py -m $output_path --loaded_pth $output_path/chkpnt_best.pth --skip_train
+        python render.py -m $output_path --loaded_pth $output_path/chkpnt_best.pth
         python metrics.py -m $output_path
     else
         echo "Scene $scene is already processed on $output_path"

@@ -10,7 +10,7 @@ exhaust_test: False
 ModelParams:
   sh_degree: 3
   source_path: "data/WAT/spa"
-  model_path: "output/WAT-fullres/spa"
+  model_path: "output/WAT/realtime4DGS-3/spa"
   images: "images"
   resolution: 1
   white_background: False

@@ -56,10 +56,11 @@ def summarize_results(base_folder):
     return df
 
 #base_folder = "output/N3V"
-base_folder = "output/WAT-fullres"
+method = "realtime4DGS-3"
+base_folder = f"output/WAT/{method}"
 summary_table = summarize_results(base_folder)
 
 print(summary_table.to_string())
 
 #summary_table.to_csv("dynerf_realtime4DGS_results_summary.csv")
-summary_table.to_csv("WAT_realtime4DGS-fullres_results_summary.csv")
+summary_table.to_csv(f"WAT_{method}_results_summary.csv")
