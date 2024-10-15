@@ -28,11 +28,12 @@ import numpy as np
 from omegaconf import OmegaConf
 from omegaconf.dictconfig import DictConfig
 from torch.utils.data import DataLoader
-try:
-    from torch.utils.tensorboard import SummaryWriter
-    TENSORBOARD_FOUND = True
-except ImportError:
-    TENSORBOARD_FOUND = False
+import wandb
+# try:
+#     from torch.utils.tensorboard import SummaryWriter
+#     TENSORBOARD_FOUND = True
+# except ImportError:
+#     TENSORBOARD_FOUND = False
 
 def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoint, debug_from,
              gaussian_dim, time_duration, num_pts, num_pts_ratio, rot_4d, force_sh_3d, batch_size):
@@ -41,7 +42,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
         time_duration = [time_duration[0] / dataset.frame_ratio,  time_duration[1] / dataset.frame_ratio]
     
     first_iter = 0
-    tb_writer = prepare_output_and_logger(dataset)
+    prepare_output_and_logger(dataset)
     gaussians = GaussianModel(dataset.sh_degree, gaussian_dim=gaussian_dim, time_duration=time_duration, rot_4d=rot_4d, force_sh_3d=force_sh_3d, sh_degree_t=2 if pipe.eval_shfs_4d else 0)
     scene = Scene(dataset, gaussians, num_pts=num_pts, num_pts_ratio=num_pts_ratio, time_duration=time_duration)
     gaussians.training_setup(opt)
@@ -216,7 +217,7 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                     progress_bar.close()
 
                 # Log and save
-                test_psnr = training_report(tb_writer, iteration, Ll1, loss, l1_loss, iter_start.elapsed_time(iter_end), testing_iterations, scene, render, (pipe, background), loss_dict)
+                test_psnr = training_report(iteration, Ll1, Lssim, loss, l1_loss, iter_start.elapsed_time(iter_end), testing_iterations, scene, render, (pipe, background), loss_dict)
                 if (iteration in testing_iterations):
                     if test_psnr >= best_psnr:
                         best_psnr = test_psnr
@@ -265,37 +266,30 @@ def prepare_output_and_logger(args):
     with open(os.path.join(args.model_path, "cfg_args"), 'w') as cfg_log_f:
         cfg_log_f.write(str(Namespace(**vars(args))))
 
-    # Create Tensorboard writer
-    tb_writer = None
-    if TENSORBOARD_FOUND:
-        tb_writer = SummaryWriter(args.model_path)
-    else:
-        print("Tensorboard not available: not logging progress")
-    return tb_writer
+    wandb.init(project="realtime4DGS", config=args)
+    # # Create Tensorboard writer
+    # tb_writer = None
+    # if TENSORBOARD_FOUND:
+    #     tb_writer = SummaryWriter(args.model_path)
+    # else:
+    #     print("Tensorboard not available: not logging progress")
+    # return tb_writer
 
-def training_report(tb_writer, iteration, Ll1, loss, l1_loss, elapsed, testing_iterations, scene : Scene, renderFunc, renderArgs, loss_dict=None):
-    if tb_writer:
-        tb_writer.add_scalar('train_loss_patches/l1_loss', Ll1.item(), iteration)
-        tb_writer.add_scalar('train_loss_patches/ssim_loss', Ll1.item(), iteration)
-        tb_writer.add_scalar('train_loss_patches/total_loss', loss.item(), iteration)
-        tb_writer.add_scalar('iter_time', elapsed, iteration)
-        tb_writer.add_scalar('total_points', scene.gaussians.get_xyz.shape[0], iteration)
-        tb_writer.add_histogram("scene/opacity_histogram", scene.gaussians.get_opacity, iteration)
-        if loss_dict is not None:
-            if "Lrigid" in loss_dict:
-                tb_writer.add_scalar('train_loss_patches/rigid_loss', loss_dict['Lrigid'].item(), iteration)
-            if "Ldepth" in loss_dict:
-                tb_writer.add_scalar('train_loss_patches/depth_loss', loss_dict['Ldepth'].item(), iteration)
-            if "Ltv" in loss_dict:
-                tb_writer.add_scalar('train_loss_patches/tv_loss', loss_dict['Ltv'].item(), iteration)
-            if "Lopa" in loss_dict:
-                tb_writer.add_scalar('train_loss_patches/opa_loss', loss_dict['Lopa'].item(), iteration)
-            if "Lptsopa" in loss_dict:
-                tb_writer.add_scalar('train_loss_patches/pts_opa_loss', loss_dict['Lptsopa'].item(), iteration)
-            if "Lsmooth" in loss_dict:
-                tb_writer.add_scalar('train_loss_patches/smooth_loss', loss_dict['Lsmooth'].item(), iteration)
-            if "Llaplacian" in loss_dict:
-                tb_writer.add_scalar('train_loss_patches/laplacian_loss', loss_dict['Llaplacian'].item(), iteration)
+def training_report(iteration, Ll1, Lssim, loss, l1_loss, elapsed, testing_iterations, scene : Scene, renderFunc, renderArgs, loss_dict=None):
+    wandb.log({
+        'train_loss_patches/l1_loss': Ll1.item(),
+        'train_loss_patches/ssim_loss': Lssim.item(),
+        'train_loss_patches/total_loss': loss.item(),
+        'iter_time': elapsed,
+        'total_points': scene.gaussians.get_xyz.shape[0],
+    }, step=iteration)
+
+    wandb.log({"opacity_histogram": wandb.Histogram(scene.gaussians.get_opacity.cpu().numpy())}, step=iteration)
+
+    if loss_dict is not None:
+        for key, value in loss_dict.items():
+            if key.startswith('L'):
+                wandb.log({f'train_loss_patches/{key.lower()}_loss': value.item()}, step=iteration)
 
     psnr_test_iter = 0.0
     # Report test and samples of training set
@@ -319,10 +313,10 @@ def training_report(tb_writer, iteration, Ll1, loss, l1_loss, elapsed, testing_i
                     
                     depth = easy_cmap(render_pkg['depth'][0])
                     alpha = torch.clamp(render_pkg['alpha'], 0.0, 1.0).repeat(3,1,1)
-                    if tb_writer and (idx < 5):
+                    if idx < 5:
                         grid = [gt_image, image, alpha, depth]
                         grid = make_grid(grid, nrow=2)
-                        tb_writer.add_images(config['name'] + "_view_{}/gt_vs_render".format(viewpoint.image_name), grid[None], global_step=iteration)
+                        wandb.log({f"{config['name']}_view_{viewpoint.image_name}/gt_vs_render": wandb.Image(grid)}, step=iteration)
                             
                     l1_test += l1_loss(image, gt_image).mean().double()
                     psnr_test += psnr(image, gt_image).mean().double()
@@ -333,11 +327,12 @@ def training_report(tb_writer, iteration, Ll1, loss, l1_loss, elapsed, testing_i
                 ssim_test /= len(config['cameras'])     
                 msssim_test /= len(config['cameras'])        
                 print("\n[ITER {}] Evaluating {}: L1 {} PSNR {}".format(iteration, config['name'], l1_test, psnr_test))
-                if tb_writer:
-                    tb_writer.add_scalar(config['name'] + '/loss_viewpoint - l1_loss', l1_test, iteration)
-                    tb_writer.add_scalar(config['name'] + '/loss_viewpoint - psnr', psnr_test, iteration)
-                    tb_writer.add_scalar(config['name'] + '/loss_viewpoint - ssim', ssim_test, iteration)
-                    tb_writer.add_scalar(config['name'] + '/loss_viewpoint - msssim', msssim_test, iteration)
+                wandb.log({
+                    f"{config['name']}_l1_loss": l1_test,
+                    f"{config['name']}_psnr": psnr_test,
+                    f"{config['name']}_ssim": ssim_test,
+                    f"{config['name']}_msssim": msssim_test
+                }, step=iteration)
                 if config['name'] == 'test':
                     psnr_test_iter = psnr_test.item()
                     
@@ -399,9 +394,20 @@ if __name__ == "__main__":
     # Initialize system state (RNG)
     safe_state(args.quiet)
 
+    # Setup logging
+    os.makedirs(args.model_path, exist_ok=True)
+    wandb.init(
+        project="realtime4DGS",
+        config=args,
+        dir=args.model_path,
+        settings=wandb.Settings(start_method="thread")
+    )
+    
+    # Train
     torch.autograd.set_detect_anomaly(args.detect_anomaly)
     training(lp.extract(args), op.extract(args), pp.extract(args), args.test_iterations, args.save_iterations, args.start_checkpoint, args.debug_from,
              args.gaussian_dim, args.time_duration, args.num_pts, args.num_pts_ratio, args.rot_4d, args.force_sh_3d, args.batch_size)
 
     # All done
     print("\nTraining complete.")
+    wandb.finish()

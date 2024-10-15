@@ -20,3 +20,6 @@ dist/
 eggs/
 .eggs/
 *.egg
+
+wandb
+sbatch_log
