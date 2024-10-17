@@ -194,30 +194,29 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 ema_l1loss_for_log = 0.4 * Ll1.item() + 0.6 * ema_l1loss_for_log
                 ema_ssimloss_for_log = 0.4 * Lssim.item() + 0.6 * ema_ssimloss_for_log
                 
+                postfix = {"Loss": f"{ema_loss_for_log:.{7}f}",
+                                        "PSNR": f"{psnr_for_log:.{2}f}",
+                                        "Ll1": f"{ema_l1loss_for_log:.{4}f}",
+                                        "Lssim": f"{ema_ssimloss_for_log:.{4}f}",}
+                
                 for lambda_name in lambda_all:
                     if opt.__dict__[lambda_name] > 0:
                         ema = vars()[f"ema_{lambda_name.replace('lambda_', '')}_for_log"]
                         vars()[f"ema_{lambda_name.replace('lambda_', '')}_for_log"] = 0.4 * vars()[f"L{lambda_name.replace('lambda_', '')}"].item() + 0.6*ema
                         loss_dict[lambda_name.replace("lambda_", "L")] = vars()[lambda_name.replace("lambda_", "L")]
-                        
-                if iteration % 10 == 0:
-                    postfix = {"Loss": f"{ema_loss_for_log:.{7}f}",
-                                            "PSNR": f"{psnr_for_log:.{2}f}",
-                                            "Ll1": f"{ema_l1loss_for_log:.{4}f}",
-                                            "Lssim": f"{ema_ssimloss_for_log:.{4}f}",}
-                    
-                    for lambda_name in lambda_all:
-                        if opt.__dict__[lambda_name] > 0:
-                            ema_loss = vars()[f"ema_{lambda_name.replace('lambda_', '')}_for_log"]
-                            postfix[lambda_name.replace("lambda_", "L")] = f"{ema_loss:.{4}f}"
+                
+                        ema_loss = vars()[f"ema_{lambda_name.replace('lambda_', '')}_for_log"]
+                        postfix[lambda_name.replace("lambda_", "L")] = f"{ema_loss:.{4}f}"
                             
+                if iteration % 10 == 0:
                     progress_bar.set_postfix(postfix)
                     progress_bar.update(10)
+
                 if iteration == opt.iterations:
                     progress_bar.close()
 
                 # Log and save
-                test_psnr = training_report(iteration, Ll1, Lssim, loss, l1_loss, iter_start.elapsed_time(iter_end), testing_iterations, scene, render, (pipe, background), loss_dict)
+                test_psnr = training_report(iteration, Ll1, Lssim, postfix['PSNR'], loss, l1_loss, iter_start.elapsed_time(iter_end), testing_iterations, scene, render, (pipe, background), loss_dict)
                 if (iteration in testing_iterations):
                     if test_psnr >= best_psnr:
                         best_psnr = test_psnr
@@ -275,11 +274,12 @@ def prepare_output_and_logger(args):
     #     print("Tensorboard not available: not logging progress")
     # return tb_writer
 
-def training_report(iteration, Ll1, Lssim, loss, l1_loss, elapsed, testing_iterations, scene : Scene, renderFunc, renderArgs, loss_dict=None):
+def training_report(iteration, Ll1, Lssim, train_psnr, loss, l1_loss, elapsed, testing_iterations, scene : Scene, renderFunc, renderArgs, loss_dict=None):
     wandb.log({
         'train_loss_patches/l1_loss': Ll1.item(),
         'train_loss_patches/ssim_loss': Lssim.item(),
         'train_loss_patches/total_loss': loss.item(),
+        'train_psnr': train_psnr,
         'iter_time': elapsed,
         'total_points': scene.gaussians.get_xyz.shape[0],
     }, step=iteration)
