@@ -394,6 +394,8 @@ if __name__ == "__main__":
     # Initialize system state (RNG)
     safe_state(args.quiet)
 
+    print(args)
+    
     # Setup logging
     os.makedirs(args.model_path, exist_ok=True)
     wandb.init(

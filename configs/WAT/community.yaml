@@ -1,5 +1,5 @@
 gaussian_dim: 4
-time_duration: [0.0, 10.0]
+time_duration: [0.0, 9.0]
 num_pts: 300_000
 num_pts_ratio: 1.0
 rot_4d: True
@@ -10,7 +10,7 @@ exhaust_test: False
 ModelParams:
   sh_degree: 3
   source_path: "data/WAT/community"
-  model_path: "output/WAT/realtime4DGS-3/community"
+  model_path: "output/WAT/realtime4DGS-debug/community"
   images: "images"
   resolution: 1
   white_background: False
@@ -51,7 +51,7 @@ OptimizationParams:
   densify_until_iter: 15_000
   densify_grad_threshold: 0.0002
   densify_grad_t_threshold: 0.0002 / 40 # 想办法用上
-  densify_until_num_points: -1
+  densify_until_num_points: 3e6
   final_prune_from_iter: -1
   sh_increase_interval: 1000
   lambda_opa_mask: 0.0
