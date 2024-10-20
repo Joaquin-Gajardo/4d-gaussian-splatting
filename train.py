@@ -10,6 +10,7 @@
 #
 
 import os
+from datetime import datetime
 import random
 import torch
 from torch import nn
@@ -395,12 +396,17 @@ if __name__ == "__main__":
     safe_state(args.quiet)
 
     print(args)
-    
+
     # Setup logging
     os.makedirs(args.model_path, exist_ok=True)
+    scene_name = os.path.basename(args.model_path)
+    experiment_name = os.path.basename(os.path.dirname(args.model_path))
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     wandb.init(
         project="realtime4DGS",
+        name=timestamp,
         config=args,
+        tags=[scene_name, experiment_name],
         dir=args.model_path,
         settings=wandb.Settings(start_method="thread")
     )

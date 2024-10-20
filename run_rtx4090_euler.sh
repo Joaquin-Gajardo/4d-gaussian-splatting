@@ -1,11 +1,10 @@
 #!/bin/bash
 #SBATCH -J realtime4dgs
 #SBATCH --mail-type=END,FAIL
-#SBATCH --time=12:00:00
-#SBATCH --gpus=1 
-#SBATCH --gres=gpumem:80g
+#SBATCH --time=48:00:00
+#SBATCH --gpus=rtx_4090:1 
 #SBATCH --mem-per-cpu=8G
-#SBATCH --cpus-per-task=8
+#SBATCH --cpus-per-task=4
 #SBATCH --output=sbatch_log/%j.out
 #SBATCH --error=sbatch_log/%j.out
 
@@ -22,4 +21,9 @@ echo $(module list)
 
 nvidia-smi
 
-bash train_WAT.sh
+#bash train_WAT.sh 
+
+experiment_name="$1"
+mod_args="$2"
+
+bash run_WAT_experiment_euler.sh "$experiment_name" "$mod_args"
