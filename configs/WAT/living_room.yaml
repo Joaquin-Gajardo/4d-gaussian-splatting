@@ -10,7 +10,7 @@ exhaust_test: False
 ModelParams:
   sh_degree: 3
   source_path: "data/WAT/living_room"
-  model_path: "output/WAT/realtime4DGS-3/living_room"
+  model_path: "output/WAT/realtime4DGS-5/living_room"
   images: "images"
   resolution: 1
   white_background: False

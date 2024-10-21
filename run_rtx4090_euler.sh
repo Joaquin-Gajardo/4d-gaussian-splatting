@@ -4,7 +4,7 @@
 #SBATCH --time=48:00:00
 #SBATCH --gpus=rtx_4090:1 
 #SBATCH --mem-per-cpu=8G
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=8
 #SBATCH --output=sbatch_log/%j.out
 #SBATCH --error=sbatch_log/%j.out
 
