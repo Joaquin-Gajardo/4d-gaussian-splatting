@@ -90,4 +90,4 @@ if __name__ == "__main__":
     # Initialize system state (RNG)
     safe_state(args.quiet)
 
-    render_sets(model.extract(args), args.iteration, pipeline.extract(args), args.skip_train, args.skip_test, args.gaussian_dim, args.time_duration, args.rot_4d, args.force_sh_3d, args.eval_shfs_4d)
+    render_sets(model.extract(args), pipeline.extract(args), args.skip_train, args.skip_test, args.gaussian_dim, args.time_duration, args.rot_4d, args.force_sh_3d, args.eval_shfs_4d)
