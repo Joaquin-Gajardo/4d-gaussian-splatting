@@ -39,6 +39,30 @@ pip install --no-cache-dir ./simple-knn
 pip install --no-cache-dir ./pointops2
 pip install pandas
 ```
+
+In Ubuntu, without just with conda (this below doesn't work on H100 due to sh architechture is 90 and max supported by this pytorch version is 86):
+```
+conda create -n realtime4dgs python=3.7.13
+conda activate realtime4dgs
+pip install torch==1.12.1+cu116 torchvision==0.13.1+cu116 torchaudio==0.12.1 -f https://download.pytorch.org/whl/torch_stable.html
+conda install -c "nvidia/label/cuda-11.6.0" cuda-toolkit
+pip install plyfile==0.8.1 tqdm==4.66.1 torchmetrics==0.11.4 imagesize==1.4.1 kornia==0.6.12 omegaconf==2.3.0
+pip install --no-cache-dir ./simple-knn # -> Failed here
+pip install --no-cache-dir ./pointops2
+pip install pandas wandb ninja
+```
+
+H100 will work on cuda11.8 or more (https://github.com/pytorch/pytorch/issues/90761). The following instructions are from rotor4DGS installation, note that pytorch version is higher though, but hopefully results won't differ:
+```
+conda create -n realtime4dgs2 python=3.8
+conda activate realtime4dgs2
+pip install torch==2.1.2+cu118 torchvision==0.16.2+cu118 --extra-index-url https://download.pytorch.org/whl/cu118
+conda install -c "nvidia/label/cuda-11.8.0" cuda-toolkit
+pip install plyfile==0.8.1 tqdm==4.66.1 torchmetrics==0.11.4 imagesize==1.4.1 kornia==0.6.12 omegaconf==2.3.0
+pip install --no-cache-dir ./simple-knn # -> Failed here
+pip install --no-cache-dir ./pointops2
+pip install pandas wandb
+```
 ### Data preparation
 
 **DyNeRF dataset:**
