@@ -1,11 +1,11 @@
 #!/bin/bash
 #SBATCH -J realtime4dgs
 #SBATCH --mail-type=END,FAIL
-#SBATCH --time=48:00:00
+#SBATCH --time=24:00:00
 #SBATCH --gpus=1 
 #SBATCH --gres=gpumem:80g
-#SBATCH --mem-per-cpu=8G
-#SBATCH --cpus-per-task=8
+#SBATCH --mem-per-cpu=32G
+#SBATCH --cpus-per-task=2
 #SBATCH --output=sbatch_log/%j.out
 #SBATCH --error=sbatch_log/%j.out
 

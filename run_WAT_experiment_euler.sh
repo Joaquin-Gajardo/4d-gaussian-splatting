@@ -30,7 +30,7 @@ do
     mkdir -p $scene_output_path
     
     ckpt_best_path=$scene_output_path/chkpnt_best.pth
-    if [ ! -d $ckpt_best_path ]; then
+    if [ ! -f "$modified_config_path" ]; then
         echo "Processing scene $scene, output written to $scene_output_path"
 
         # Append the input folder to mod_args (if we have the dataset somewhere else)

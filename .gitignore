@@ -23,3 +23,4 @@ eggs/
 
 wandb
 sbatch_log
+*.csv

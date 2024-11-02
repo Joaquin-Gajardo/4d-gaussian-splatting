@@ -2,7 +2,8 @@
 #SBATCH -J realtime4dgs
 #SBATCH --mail-type=END,FAIL
 #SBATCH --time=24:00:00
-#SBATCH --gpus=rtx_4090:1 
+#SBATCH --gpus=1 
+#SBATCH --gres=gpumem:40g
 #SBATCH --mem-per-cpu=24G
 #SBATCH --cpus-per-task=2
 #SBATCH --output=sbatch_log/%j.out
